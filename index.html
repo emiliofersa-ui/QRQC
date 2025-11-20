@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Croquis Digital QRQC</title>
+    <!-- Carga de Tailwind CSS para un diseño limpio y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+        .step-indicator.active {
+            background-color: #10B981; /* Green-500 */
+            color: white;
+            border-color: #10B981;
+        }
+        .step-indicator.complete {
+            background-color: #059669; /* Green-600 */
+            color: white;
+            border-color: #059669;
+        }
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        /* Estilos específicos para la aplicación QRQC */
+        .qrqc-card {
+            border-left: 5px solid #10B981;
+        }
+        .input-group label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-2xl">
+        <header class="mb-8 border-b pb-4">
+            <h1 class="text-3xl font-bold text-gray-800">QRQC: Control de Calidad de Respuesta Rápida</h1>
+            <p class="text-gray-500 mt-1">Plantilla digital para la gestión y análisis de no conformidades (Bucle Corto).</p>
+        </header>
+
+        <!-- Barra de Progreso y Navegación -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex-1 text-center">
+                    <span id="step1-indicator" class="step-indicator active inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-300 text-gray-500 text-sm font-semibold">1</span>
+                    <p class="text-xs mt-1">Identificación</p>
+                </div>
+                <div class="flex-1 text-center">
+                    <span id="step2-indicator" class="step-indicator inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-300 text-gray-500 text-sm font-semibold">2</span>
+                    <p class="text-xs mt-1">Contención (QR)</p>
+                </div>
+                <div class="flex-1 text-center">
+                    <span id="step3-indicator" class="step-indicator inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-300 text-gray-500 text-sm font-semibold">3</span>
+                    <p class="text-xs mt-1">Análisis (QC)</p>
+                </div>
+                <div class="flex-1 text-center">
+                    <span id="step4-indicator" class="step-indicator inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-300 text-gray-500 text-sm font-semibold">4</span>
+                    <p class="text-xs mt-1">Corrección y Cierre</p>
+                </div>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="progress-bar" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- Contenedor del Formulario por Fases -->
+        <form id="qrqc-form">
+            <!-- FASE 1: Identificación y Definición del Problema (QR) -->
+            <div id="step-1" class="space-y-6 qrqc-card p-4 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold text-emerald-600 mb-4">1. Identificación y Definición del Problema (5W2H)</h2>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label for="qrqc_number">N° de Seguimiento / QRQC</label>
+                        <input type="text" id="qrqc_number" name="qrqc_number" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="area">Área / Puesto de Trabajo (Gen-ba)</label>
+                        <input type="text" id="area" name="area" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="date_open">Fecha de Apertura (Cuándo)</label>
+                        <input type="date" id="date_open" name="date_open" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="pilot">Piloto / Responsable (Quién)</label>
+                        <input type="text" id="pilot" name="pilot" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="problem_description">Denominación del Problema / Descripción Detallada (Qué)</label>
+                    <textarea id="problem_description" name="problem_description" rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="Ej. Fuga de aceite en el componente X de la estación Z."></textarea>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label for="impact">Impacto / Dimensión del Problema (Cuánto / Coste)</label>
+                        <input type="text" id="impact" name="impact" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="Ej. 15 piezas no conformes / Coste estimado.">
+                    </div>
+                    <div class="input-group">
+                        <label for="recurrence">Recurrencia</label>
+                        <select id="recurrence" name="recurrence" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="no">No recurrente (Nuevo)</option>
+                            <option value="si">Sí recurrente (Indicar N° QRQC previo)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end mt-6">
+                    <button type="button" onclick="nextStep(1)" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition duration-150">Siguiente: Contención &rarr;</button>
+                </div>
+            </div>
+
+            <!-- FASE 2: Acciones Inmediatas y Contención (QR) -->
+            <div id="step-2" class="hidden space-y-6 qrqc-card p-4 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold text-emerald-600 mb-4">2. Acciones Inmediatas y Contención (Máx. 24 Horas)</h2>
+
+                <h3 class="text-xl font-medium text-gray-700">Protección del Cliente</h3>
+                <div class="input-group p-4 bg-red-50 rounded-lg border border-red-200">
+                    <label>¿Existía protección previa y funcionó?</label>
+                    <div class="flex space-x-4 mt-2">
+                        <label><input type="radio" name="protection_worked" value="si" class="text-emerald-600 focus:ring-emerald-500"> Sí</label>
+                        <label><input type="radio" name="protection_worked" value="no" class="text-emerald-600 focus:ring-emerald-500" checked> No</label>
+                    </div>
+                    <label for="protection_fail_reason" class="mt-3">Razón por la que la protección falló (si aplica)</label>
+                    <textarea id="protection_fail_reason" name="protection_fail_reason" rows="2" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                </div>
+
+                <h3 class="text-xl font-medium text-gray-700 mt-6">Registro de Acciones Inmediatas (Contención)</h3>
+                <div id="immediate-actions-container" class="space-y-3">
+                    <!-- Fila de acción inmediata dinámica -->
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 action-row">
+                        <div class="col-span-2">
+                            <label class="text-sm">Acción Implementada (Contención)</label>
+                            <input type="text" name="action_desc[]" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div>
+                            <label class="text-sm">Responsable (Resp.)</label>
+                            <input type="text" name="action_resp[]" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div>
+                            <label class="text-sm">Fecha Realización</label>
+                            <input type="date" name="action_date[]" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div class="flex items-end">
+                            <label class="text-sm block">Eficacia (S/N)</label>
+                            <select name="action_effective[]" class="p-2 border border-gray-300 rounded-md text-sm ml-2">
+                                <option value="">?</option>
+                                <option value="si">Sí</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="addImmediateAction()" class="text-sm text-emerald-600 hover:text-emerald-800 font-medium mt-2">+ Añadir otra Acción Inmediata</button>
+
+
+                <div class="flex justify-between mt-6">
+                    <button type="button" onclick="prevStep(2)" class="px-6 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 transition duration-150">&larr; Anterior</button>
+                    <button type="button" onclick="nextStep(2)" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition duration-150">Siguiente: Análisis &rarr;</button>
+                </div>
+            </div>
+
+            <!-- FASE 3: Observación y Análisis de la Causa Raíz (QC) -->
+            <div id="step-3" class="hidden space-y-6 qrqc-card p-4 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold text-emerald-600 mb-4">3. Observación y Análisis de la Causa Raíz (QC)</h2>
+
+                <h3 class="text-xl font-medium text-gray-700">Observación en el Terreno (San-Gen-Shugi)</h3>
+                <p class="text-sm text-gray-500 mb-3">Documente los hallazgos en el Gen-ba, Gen-butsu y Gen-jitsu (Piezas y Datos Reales).</p>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label for="gemba_man">Mano de Obra (Formación, Estándar)</label>
+                        <textarea id="gemba_man" name="gemba_man" rows="2" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="gemba_method">Métodos (Estándar(es), Puntos Clave)</label>
+                        <textarea id="gemba_method" name="gemba_method" rows="2" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="gemba_machine">Medios (Máquinas, Utillaje, Parámetros)</label>
+                        <textarea id="gemba_machine" name="gemba_machine" rows="2" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="gemba_material">Material (Componentes, Especificaciones)</label>
+                        <textarea id="gemba_material" name="gemba_material" rows="2" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-medium text-gray-700 mt-6">Análisis de Causa Raíz (5 Por Qué)</h3>
+                <div id="five-why-container" class="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p class="text-sm text-gray-600 font-semibold">1er Por Qué:</p>
+                    <input type="text" name="why1" class="w-full p-2 border border-gray-300 rounded-md">
+                    <p class="text-sm text-gray-600 font-semibold">2do Por Qué:</p>
+                    <input type="text" name="why2" class="w-full p-2 border border-gray-300 rounded-md">
+                    <p class="text-sm text-gray-600 font-semibold">3er Por Qué:</p>
+                    <input type="text" name="why3" class="w-full p-2 border border-gray-300 rounded-md">
+                    <!-- Se pueden añadir más dinámicamente o dejar estos 3 mandatorios -->
+                </div>
+
+                <div class="input-group mt-6">
+                    <label for="root_cause">Conclusión / Causa Raíz Retenida</label>
+                    <textarea id="root_cause" name="root_cause" rows="2" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" required></textarea>
+                </div>
+
+                <div class="input-group p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <label>Verificación: ¿Se logró Reproducir el Defecto con la Causa Retenida?</label>
+                    <div class="flex space-x-4 mt-2">
+                        <label><input type="radio" name="reproduce_defect" value="si" class="text-emerald-600 focus:ring-emerald-500"> Sí (Confirmado)</label>
+                        <label><input type="radio" name="reproduce_defect" value="no" class="text-emerald-600 focus:ring-emerald-500" checked> No (Revisar análisis)</label>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button type="button" onclick="prevStep(3)" class="px-6 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 transition duration-150">&larr; Anterior</button>
+                    <button type="button" onclick="nextStep(3)" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition duration-150">Siguiente: Corrección &rarr;</button>
+                </div>
+            </div>
+
+            <!-- FASE 4: Acciones Correctivas Permanentes y Cierre -->
+            <div id="step-4" class="hidden space-y-6 qrqc-card p-4 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold text-emerald-600 mb-4">4. Acciones Correctivas Permanentes y Cierre (QC)</h2>
+
+                <h3 class="text-xl font-medium text-gray-700">Acciones Permanentes (Para suprimir la Causa Raíz)</h3>
+                <p class="text-sm text-gray-500 mb-3">Plazo mandatorio: 30 días para eliminación permanente (para temas complejos).</p>
+                <div id="permanent-actions-container" class="space-y-3">
+                    <!-- Fila de acción permanente dinámica (similar a la contención pero con énfasis en la permanencia) -->
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 action-row">
+                        <div class="col-span-2">
+                            <label class="text-sm">Acción Permanente</label>
+                            <input type="text" name="perm_action_desc[]" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div>
+                            <label class="text-sm">Responsable (Resp.)</label>
+                            <input type="text" name="perm_action_resp[]" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div>
+                            <label class="text-sm">Fecha Realización</label>
+                            <input type="date" name="perm_action_date[]" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        <div class="flex items-end">
+                            <label class="text-sm block">Eficacia (S/N)</label>
+                            <select name="perm_action_effective[]" class="p-2 border border-gray-300 rounded-md text-sm ml-2">
+                                <option value="">?</option>
+                                <option value="si">Sí</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="addPermanentAction()" class="text-sm text-emerald-600 hover:text-emerald-800 font-medium mt-2">+ Añadir otra Acción Permanente</button>
+
+                <h3 class="text-xl font-medium text-gray-700 mt-6">Transversalización y Prevención</h3>
+                <div class="input-group">
+                    <label for="lesson_learned">Lecciones Aprendidas / Acciones de Transversalización</label>
+                    <textarea id="lesson_learned" name="lesson_learned" rows="2" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="Ej. Actualizar FMEA y Plan de Control del proceso X y Y."></textarea>
+                </div>
+
+                <h3 class="text-xl font-medium text-gray-700 mt-6">Decisión de Cierre</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label for="date_close">Fecha de Cierre</label>
+                        <input type="date" id="date_close" name="date_close" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="input-group">
+                        <label for="closure_type">Tipo de Cierre</label>
+                        <select id="closure_type" name="closure_type" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="corto">Bucle Corto (Cerrado)</option>
+                            <option value="qcstory">Escalado a QC Story (Temas complejos)</option>
+                        </select>
+                    </div>
+                </div>
+
+
+                <div class="flex justify-between mt-6">
+                    <button type="button" onclick="prevStep(4)" class="px-6 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 transition duration-150">&larr; Anterior</button>
+                    <button type="button" onclick="submitForm()" class="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-xl hover:bg-blue-700 transition duration-150">FINALIZAR Y GUARDAR QRQC</button>
+                </div>
+            </div>
+
+            <!-- Modal de Resumen (para simular el guardado) -->
+            <div id="summary-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center p-4 z-50" onclick="closeModal()">
+                <div class="bg-white p-6 md:p-8 rounded-lg max-w-xl w-full shadow-2xl" onclick="event.stopPropagation()">
+                    <h3 class="text-2xl font-bold text-emerald-600 mb-4">Resumen de Datos Capturados (Para IT)</h3>
+                    <p class="text-gray-600 mb-4">Este objeto JSON simula la estructura de datos que se enviaría a la base de datos (Firestore/Retool DB). La clave es la organización jerárquica.</p>
+                    <pre id="qrqc-summary" class="bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm text-gray-800"></pre>
+                    <button type="button" onclick="closeModal()" class="mt-6 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Cerrar</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <script>
+        // Objeto para almacenar la data del QRQC
+        let qrqcData = {};
+        let currentStep = 1;
+
+        // Función para cambiar de fase/paso
+        function updateStepUI(step) {
+            const steps = [1, 2, 3, 4];
+            const totalSteps = steps.length;
+
+            steps.forEach(s => {
+                const element = document.getElementById(`step-${s}`);
+                const indicator = document.getElementById(`step${s}-indicator`);
+                element.classList.add('hidden');
+
+                if (s === step) {
+                    element.classList.remove('hidden');
+                    indicator.classList.add('active');
+                    indicator.classList.remove('complete');
+                } else if (s < step) {
+                    indicator.classList.add('complete');
+                    indicator.classList.remove('active');
+                } else {
+                    indicator.classList.remove('active', 'complete');
+                }
+            });
+
+            // Actualizar barra de progreso
+            const progress = ((step - 1) / (totalSteps - 1)) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            currentStep = step;
+        }
+
+        // Navegación (Siguiente)
+        function nextStep(current) {
+            if (current < 4) {
+                updateStepUI(current + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Navegación (Anterior)
+        function prevStep(current) {
+            if (current > 1) {
+                updateStepUI(current - 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Funciones para añadir filas de acciones dinámicas
+        function addActionRow(containerId, actionType) {
+            const container = document.getElementById(containerId);
+            const newRow = document.createElement('div');
+            newRow.className = 'grid grid-cols-1 md:grid-cols-5 gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 action-row';
+            newRow.innerHTML = `
+                <div class="col-span-2">
+                    <label class="text-sm">Acción ${actionType === 'immediate' ? 'Implementada' : 'Permanente'}</label>
+                    <input type="text" name="${actionType === 'immediate' ? 'action_desc[]' : 'perm_action_desc[]'}" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                </div>
+                <div>
+                    <label class="text-sm">Responsable (Resp.)</label>
+                    <input type="text" name="${actionType === 'immediate' ? 'action_resp[]' : 'perm_action_resp[]'}" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                </div>
+                <div>
+                    <label class="text-sm">Fecha Realización</label>
+                    <input type="date" name="${actionType === 'immediate' ? 'action_date[]' : 'perm_action_date[]'}" class="w-full p-2 border border-gray-300 rounded-md text-sm">
+                </div>
+                <div class="flex items-end">
+                    <label class="text-sm block">Eficacia (S/N)</label>
+                    <select name="${actionType === 'immediate' ? 'action_effective[]' : 'perm_action_effective[]'}" class="p-2 border border-gray-300 rounded-md text-sm ml-2">
+                        <option value="">?</option>
+                        <option value="si">Sí</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <button type="button" onclick="this.parentNode.remove()" class="text-red-500 hover:text-red-700 text-sm md:col-span-1 md:self-end">Eliminar</button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function addImmediateAction() {
+            addActionRow('immediate-actions-container', 'immediate');
+        }
+
+        function addPermanentAction() {
+            addActionRow('permanent-actions-container', 'permanent');
+        }
+
+        // Función de extracción y estructuración de datos
+        function getActionData(descNames, respNames, dateNames, effectiveNames) {
+            const actions = [];
+            const form = document.getElementById('qrqc-form');
+
+            const descs = form.querySelectorAll(`input[name='${descNames}']`);
+            const resps = form.querySelectorAll(`input[name='${respNames}']`);
+            const dates = form.querySelectorAll(`input[name='${dateNames}']`);
+            const effs = form.querySelectorAll(`select[name='${effectiveNames}']`);
+
+            for (let i = 0; i < descs.length; i++) {
+                if (descs[i].value.trim()) {
+                    actions.push({
+                        description: descs[i].value,
+                        responsible: resps[i].value,
+                        date: dates[i].value,
+                        effectiveness: effs[i].value
+                    });
+                }
+            }
+            return actions;
+        }
+
+        // Función para simular el envío del formulario
+        function submitForm() {
+            const form = document.getElementById('qrqc-form');
+            const data = new FormData(form);
+
+            qrqcData = {
+                // FASE 1: IDENTIFICACIÓN
+                identification: {
+                    qrqc_number: data.get('qrqc_number'),
+                    date_open: data.get('date_open'),
+                    area: data.get('area'),
+                    pilot: data.get('pilot'),
+                    description: data.get('problem_description'),
+                    impact: data.get('impact'),
+                    recurrence: data.get('recurrence'),
+                    // En un entorno real se capturarían listas de Participantes
+                },
+                // FASE 2: CONTENCIÓN
+                contention: {
+                    protection_worked: data.get('protection_worked'),
+                    protection_fail_reason: data.get('protection_fail_reason'),
+                    immediate_actions: getActionData('action_desc[]', 'action_resp[]', 'action_date[]', 'action_effective[]')
+                },
+                // FASE 3: ANÁLISIS DE CAUSA RAÍZ
+                analysis: {
+                    // San-Gen-Shugi (4M)
+                    gemba_observation: {
+                        mano_de_obra: data.get('gemba_man'),
+                        metodos: data.get('gemba_method'),
+                        medios: data.get('gemba_machine'),
+                        material: data.get('gemba_material')
+                    },
+                    five_why: {
+                        why1: data.get('why1'),
+                        why2: data.get('why2'),
+                        why3: data.get('why3'),
+                        // Se pueden añadir más Whys
+                    },
+                    root_cause: data.get('root_cause'),
+                    reproduce_defect: data.get('reproduce_defect')
+                },
+                // FASE 4: CORRECCIÓN Y CIERRE
+                closure: {
+                    permanent_actions: getActionData('perm_action_desc[]', 'perm_action_resp[]', 'perm_action_date[]', 'perm_action_effective[]'),
+                    lesson_learned: data.get('lesson_learned'),
+                    date_close: data.get('date_close'),
+                    closure_type: data.get('closure_type')
+                }
+            };
+
+            // Mostrar el resumen JSON al usuario (simulando el guardado en la DB)
+            document.getElementById('qrqc-summary').textContent = JSON.stringify(qrqcData, null, 2);
+            document.getElementById('summary-modal').classList.remove('hidden');
+            document.getElementById('summary-modal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('summary-modal').classList.add('hidden');
+            document.getElementById('summary-modal').classList.remove('flex');
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar la primera fila de acciones inmediatas
+            addImmediateAction();
+            // Inicializar la primera fila de acciones permanentes
+            addPermanentAction();
+            // Inicializar la UI al paso 1
+            updateStepUI(1);
+        });
+    </script>
+</body>
+</html>
